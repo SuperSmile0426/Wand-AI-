@@ -109,11 +109,17 @@ python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ## 🔧 Configuration
 
 ### Environment Variables
+Create a `.env` file in the `challenge1` directory with the following variables:
 ```bash
-OPENAI_API_KEY=your_openai_api_key  # Optional - system works in mock mode
+# OpenAI API Configuration (Optional - system works in mock mode without this)
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Server Configuration
 PORT=8000
 HOST=0.0.0.0
 ```
+
+**Important Security Note**: Never commit API keys or sensitive data to the repository. The `.env` file is already included in `.gitignore` to prevent accidental commits.
 
 ### Mock Mode
 The system automatically runs in mock mode when:
