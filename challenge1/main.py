@@ -1,7 +1,5 @@
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, FileResponse
 import json
 import asyncio
 import uuid
@@ -21,8 +19,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static files
-app.mount("/static", StaticFiles(directory="challenge1/static"), name="static")
 
 # Initialize orchestrator
 orchestrator = TaskOrchestrator()

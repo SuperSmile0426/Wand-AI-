@@ -82,3 +82,7 @@ class EnrichmentResult(BaseModel):
     enriched_topics: List[str]
     sources: List[str]
     timestamp: datetime = Field(default_factory=datetime.now)
+
+# Update forward references
+EnrichmentSuggestion.model_rebuild()
+SearchResponse.model_rebuild()

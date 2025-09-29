@@ -4,9 +4,8 @@ Main FastAPI application for document upload, search, and enrichment suggestions
 """
 
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 import uvicorn
 import os
 from typing import List, Optional
@@ -41,14 +40,23 @@ knowledge_base = KnowledgeBase(persist_directory=Config.CHROMA_PERSIST_DIR)
 rag_pipeline = RAGPipeline(openai_api_key=Config.OPENAI_API_KEY)
 enrichment_service = EnrichmentService(serpapi_key=Config.SERPAPI_KEY)
 
-# Mount static files
-app.mount("/static", StaticFiles(directory="challenge2/static"), name="static")
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root():
-    """Serve the main web interface."""
-    with open("challenge2/static/index.html", "r", encoding="utf-8") as f:
-        return HTMLResponse(content=f.read())
+    """API root endpoint."""
+    html_content = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>AI Knowledge Base Search & Enrichment</title>
+    </head>
+    <body>
+        <h1>AI Knowledge Base Search & Enrichment API</h1>
+        <p>Status: Running</p>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content, status_code=200)
 
 @app.post("/upload")
 async def upload_documents(files: List[UploadFile] = File(...)):

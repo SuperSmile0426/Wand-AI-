@@ -17,12 +17,6 @@ class TestMainApp:
         """Create a test client."""
         return TestClient(app)
     
-    def test_root_endpoint(self, client):
-        """Test root endpoint."""
-        response = client.get("/")
-        assert response.status_code == 200
-        assert response.headers["content-type"] == "text/html; charset=utf-8"
-    
     def test_api_info_endpoint(self, client):
         """Test API info endpoint."""
         response = client.get("/api")

@@ -22,8 +22,8 @@ import chromadb
 from sentence_transformers import SentenceTransformer
 import numpy as np
 
-from models import DocumentInfo, DocumentType, MissingInfo, EnrichmentSuggestion, EnrichmentType
-from config import Config
+from challenge2.models import DocumentInfo, DocumentType, MissingInfo, EnrichmentSuggestion, EnrichmentType
+from challenge2.config import Config
 
 class KnowledgeBase:
     """Manages document storage, processing, and retrieval."""

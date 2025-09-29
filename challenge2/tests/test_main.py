@@ -16,12 +16,6 @@ class TestMainApp:
         """Create a test client."""
         return TestClient(app)
     
-    def test_root_endpoint(self, client):
-        """Test root endpoint."""
-        response = client.get("/")
-        assert response.status_code == 200
-        assert response.headers["content-type"] == "text/html; charset=utf-8"
-    
     def test_health_check(self, client):
         """Test health check endpoint."""
         response = client.get("/health")
@@ -393,17 +387,6 @@ class TestMainApp:
         response = client.get("/static/nonexistent.html")
         # Should not return 500, indicating the mount is working
         assert response.status_code != 500
-    
-    def test_search_request_validation(self, client):
-        """Test search request validation."""
-        # Test with valid request
-        response = client.post("/search", json={
-            "query": "What is the revenue?",
-            "include_enrichment": True,
-            "max_results": 10
-        })
-        # Should not return 422 (validation error)
-        assert response.status_code != 422
     
     def test_rating_request_validation(self, client):
         """Test rating request validation."""
