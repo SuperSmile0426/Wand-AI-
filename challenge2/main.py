@@ -16,11 +16,11 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-from models import SearchRequest, SearchResponse, DocumentInfo, EnrichmentSuggestion
-from knowledge_base import KnowledgeBase
-from rag_pipeline import RAGPipeline
-from enrichment_service import EnrichmentService
-from config import Config
+from challenge2.models import SearchRequest, SearchResponse, DocumentInfo, EnrichmentSuggestion, MissingInfo
+from challenge2.knowledge_base import KnowledgeBase
+from challenge2.rag_pipeline import RAGPipeline
+from challenge2.enrichment_service import EnrichmentService
+from challenge2.config import Config
 
 app = FastAPI(title="AI Knowledge Base Search & Enrichment", version="1.0.0")
 
@@ -42,12 +42,12 @@ rag_pipeline = RAGPipeline(openai_api_key=Config.OPENAI_API_KEY)
 enrichment_service = EnrichmentService(serpapi_key=Config.SERPAPI_KEY)
 
 # Mount static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory="challenge2/static"), name="static")
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root():
     """Serve the main web interface."""
-    with open("static/index.html", "r", encoding="utf-8") as f:
+    with open("challenge2/static/index.html", "r", encoding="utf-8") as f:
         return HTMLResponse(content=f.read())
 
 @app.post("/upload")
@@ -105,7 +105,7 @@ async def search_documents(request: SearchRequest):
 async def rate_answer(
     query: str = Form(...),
     answer: str = Form(...),
-    rating: int = Form(...),
+    rating: int = Form(..., ge=1, le=5),
     feedback: Optional[str] = Form(None)
 ):
     """Rate the quality of an answer to improve the pipeline."""

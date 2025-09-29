@@ -51,7 +51,7 @@ class EnrichmentSuggestion(BaseModel):
     """Suggestion for enriching the knowledge base."""
     type: EnrichmentType
     description: str
-    missing_info: List[MissingInfo]
+    missing_info: List["MissingInfo"]
     suggested_actions: List[str]
     confidence: float = Field(..., ge=0.0, le=1.0)
     auto_enrichable: bool = Field(default=False)
@@ -62,9 +62,9 @@ class SearchResponse(BaseModel):
     answer: str
     confidence: ConfidenceLevel
     confidence_score: float = Field(..., ge=0.0, le=1.0)
-    sources: List[DocumentInfo]
-    missing_info: List[MissingInfo]
-    enrichment_suggestions: List[EnrichmentSuggestion]
+    sources: List["DocumentInfo"]
+    missing_info: List["MissingInfo"]
+    enrichment_suggestions: List["EnrichmentSuggestion"]
     processing_time_ms: int
     timestamp: datetime = Field(default_factory=datetime.now)
 

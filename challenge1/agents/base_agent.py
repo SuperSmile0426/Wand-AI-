@@ -6,8 +6,8 @@ import asyncio
 import subprocess
 import requests
 from datetime import datetime
-from models import AgentType, TaskStatus, AgentResponse, ToolCall, ClarificationRequest
-from config import OPENAI_API_KEY
+from challenge1.models import AgentType, TaskStatus, AgentResponse, ToolCall, ClarificationRequest
+from challenge1.config import OPENAI_API_KEY
 
 class BaseAgent(ABC):
     def __init__(self, agent_type: AgentType):
@@ -248,14 +248,14 @@ class BaseAgent(ABC):
     def needs_clarification(self, task_description: str, context: Dict[str, Any] = None) -> Optional[ClarificationRequest]:
         """Check if the task needs clarification"""
         # Simple heuristic - look for ambiguous terms
-        ambiguous_terms = ["analyze", "review", "evaluate", "assess", "improve", "optimize"]
+        ambiguous_terms = ["analyze", "review", "evaluate", "assess", "improve", "optimize", "create"]
         vague_terms = ["some", "several", "many", "few", "recent", "latest"]
         
         task_lower = task_description.lower()
         
         # Check for ambiguous terms without specific context
         for term in ambiguous_terms:
-            if term in task_lower and not any(specific in task_lower for specific in ["data", "revenue", "profit", "sales", "customers"]):
+            if term in task_lower and not any(specific in task_lower for specific in ["data", "revenue", "profit", "sales", "customers", "financial", "quarterly", "performance", "trends", "metrics", "comprehensive", "detailed", "analysis", "report", "chart", "visualization"]):
                 return ClarificationRequest(
                     question=f"Could you be more specific about what you'd like me to {term}? Please provide more details about the data, timeframe, or specific metrics you're interested in.",
                     context=context,

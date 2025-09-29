@@ -2,7 +2,7 @@ import json
 import asyncio
 from typing import Dict, Any, List
 from .base_agent import BaseAgent
-from models import AgentType, Subtask
+from challenge1.models import AgentType, Subtask
 
 class PlannerAgent(BaseAgent):
     def __init__(self):
@@ -51,10 +51,19 @@ Always respond with a JSON object containing:
         if context:
             context_info = f"\n\nAvailable Context:\n"
             for agent_type, result in context.items():
-                if hasattr(result, 'result') and result.result:
-                    context_info += f"- {agent_type}: {json.dumps(result.result, indent=2)}\n"
-                elif isinstance(result, dict) and 'result' in result:
-                    context_info += f"- {agent_type}: {json.dumps(result['result'], indent=2)}\n"
+                try:
+                    if hasattr(result, 'result') and result.result:
+                        if hasattr(result, 'model_dump'):
+                            context_info += f"- {agent_type}: {json.dumps(result.model_dump(), indent=2)}\n"
+                        else:
+                            context_info += f"- {agent_type}: {json.dumps(result.result, indent=2)}\n"
+                    elif isinstance(result, dict) and 'result' in result:
+                        context_info += f"- {agent_type}: {json.dumps(result['result'], indent=2)}\n"
+                    else:
+                        context_info += f"- {agent_type}: {str(result)}\n"
+                except Exception as e:
+                    # Fallback for non-serializable objects
+                    context_info += f"- {agent_type}: [Serialization Error: {e}]\n"
         
         prompt = f"""
 User Request: {task_description}{context_info}

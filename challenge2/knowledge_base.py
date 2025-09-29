@@ -65,11 +65,16 @@ class KnowledgeBase:
             for metadata in metadatas:
                 doc_id = metadata.get("document_id")
                 if doc_id and doc_id not in doc_info_map:
+                    # Check if we have minimum required fields
+                    if not metadata.get("filename") or not metadata.get("content_type"):
+                        print(f"⚠️ Skipping invalid metadata for {doc_id}: missing required fields")
+                        continue
+                    
                     try:
                         doc_info = DocumentInfo(
                             id=doc_id,
-                            filename=metadata.get("filename", "unknown"),
-                            content_type=metadata.get("content_type", "unknown"),
+                            filename=metadata.get("filename"),
+                            content_type=metadata.get("content_type"),
                             document_type=DocumentType(metadata.get("document_type", "txt")),
                             upload_date=datetime.fromisoformat(metadata.get("upload_date", datetime.now().isoformat())),
                             size_bytes=0,  # We don't store this in metadata
@@ -256,16 +261,16 @@ class KnowledgeBase:
             chunk_size = Config.CHUNK_SIZE
         if overlap is None:
             overlap = Config.CHUNK_OVERLAP
-            
+
         if len(text) <= chunk_size:
             return [text]
-        
+
         chunks = []
         start = 0
-        
+
         while start < len(text):
             end = start + chunk_size
-            
+
             # Try to break at sentence boundary
             if end < len(text):
                 # Look for sentence endings within the last 100 characters
@@ -273,15 +278,17 @@ class KnowledgeBase:
                 sentence_end = text.rfind('.', search_start, end)
                 if sentence_end > start:
                     end = sentence_end + 1
-            
+
             chunk = text[start:end].strip()
             if chunk:
                 chunks.append(chunk)
-            
-            start = end - overlap
-            if start >= len(text):
-                break
-        
+
+            # Move start forward by chunk_size - overlap, ensuring we always advance
+            start = start + chunk_size - overlap
+            # Safety check to prevent infinite loops
+            if start <= 0:
+                start = start + chunk_size
+
         return chunks
     
     async def get_document_chunks(self, doc_id: str) -> List[str]:
@@ -304,7 +311,8 @@ class KnowledgeBase:
                 include=["metadatas"]
             )
             
-            if results["ids"]:
+            # Check if there are any chunks to delete
+            if results and "ids" in results and results["ids"]:
                 # Delete chunks from ChromaDB
                 self.collection.delete(ids=results["ids"])
             

@@ -12,8 +12,8 @@ from typing import List, Dict, Any, Optional
 import re
 from urllib.parse import quote_plus
 
-from models import EnrichmentSuggestion, EnrichmentResult, DocumentInfo, DocumentType, MissingInfo
-from knowledge_base import KnowledgeBase
+from challenge2.models import EnrichmentSuggestion, EnrichmentResult, DocumentInfo, DocumentType, MissingInfo, EnrichmentType
+from challenge2.knowledge_base import KnowledgeBase
 
 class EnrichmentService:
     """Service for enriching the knowledge base with additional information."""
@@ -214,7 +214,7 @@ class EnrichmentService:
             if info.importance == "high":
                 # High importance - suggest multiple strategies
                 suggestions.append(EnrichmentSuggestion(
-                    type="web_search",
+                    type=EnrichmentType.WEB_SEARCH,
                     description=f"Search the web for recent information about {info.topic}",
                     missing_info=[info],
                     suggested_actions=[
@@ -227,7 +227,7 @@ class EnrichmentService:
                 ))
                 
                 suggestions.append(EnrichmentSuggestion(
-                    type="document",
+                    type=EnrichmentType.DOCUMENT,
                     description=f"Upload documents specifically about {info.topic}",
                     missing_info=[info],
                     suggested_actions=[
@@ -242,7 +242,7 @@ class EnrichmentService:
             elif info.importance == "medium":
                 # Medium importance - suggest document upload
                 suggestions.append(EnrichmentSuggestion(
-                    type="document",
+                    type=EnrichmentType.DOCUMENT,
                     description=f"Add more information about {info.topic}",
                     missing_info=[info],
                     suggested_actions=[

@@ -2,15 +2,15 @@ import asyncio
 import uuid
 from datetime import datetime
 from typing import Dict, Any, List, Optional
-from models import TaskExecution, Subtask, TaskStatus, AgentType, ProgressUpdate, ConversationMessage, ClarificationRequest
+from challenge1.models import TaskExecution, Subtask, TaskStatus, AgentType, ProgressUpdate, ConversationMessage, ClarificationRequest
 import os
 
 # Always use real agents, not mock
-from agents.planner_agent import PlannerAgent
-from agents.financial_agent import FinancialAgent
-from agents.data_agent import DataAgent
-from agents.chart_agent import ChartAgent
-from agents.aggregator_agent import AggregatorAgent
+from challenge1.agents.planner_agent import PlannerAgent
+from challenge1.agents.financial_agent import FinancialAgent
+from challenge1.agents.data_agent import DataAgent
+from challenge1.agents.chart_agent import ChartAgent
+from challenge1.agents.aggregator_agent import AggregatorAgent
 USE_MOCK = False
 
 class TaskOrchestrator:
@@ -72,6 +72,16 @@ class TaskOrchestrator:
             )
             
             # Send planning completion update
+            if planner_result.status == TaskStatus.FAILED:
+                raise Exception(f"Planning failed: {planner_result.error}")
+            
+            # Convert result to serializable format
+            serializable_result = planner_result.result
+            if hasattr(planner_result.result, 'model_dump'):
+                serializable_result = planner_result.result.model_dump()
+            elif hasattr(planner_result.result, 'dict'):
+                serializable_result = planner_result.result.dict()
+            
             await self._notify_progress(ProgressUpdate(
                 session_id=session_id,
                 task_id="planning",
@@ -79,11 +89,8 @@ class TaskOrchestrator:
                 status=TaskStatus.COMPLETED,
                 progress=15,
                 message="Planning completed",
-                result=planner_result.result
+                result=serializable_result
             ))
-            
-            if planner_result.status == TaskStatus.FAILED:
-                raise Exception(f"Planning failed: {planner_result.error}")
             
             # Check if clarification is needed
             if planner_result.result and planner_result.result.get("clarification_needed"):
@@ -230,7 +237,17 @@ class TaskOrchestrator:
                 "aggregation", user_request, results
             )
             
+            if aggregator_result.status == TaskStatus.FAILED:
+                raise Exception(f"Aggregation failed: {aggregator_result.error}")
+            
             # Send aggregation completion update
+            # Convert result to serializable format
+            serializable_result = aggregator_result.result
+            if hasattr(aggregator_result.result, 'model_dump'):
+                serializable_result = aggregator_result.result.model_dump()
+            elif hasattr(aggregator_result.result, 'dict'):
+                serializable_result = aggregator_result.result.dict()
+            
             await self._notify_progress(ProgressUpdate(
                 session_id=session_id,
                 task_id="aggregation",
@@ -238,14 +255,11 @@ class TaskOrchestrator:
                 status=TaskStatus.COMPLETED,
                 progress=90,
                 message="Aggregation completed",
-                result=aggregator_result.result
+                result=serializable_result
             ))
             
-            if aggregator_result.status == TaskStatus.FAILED:
-                raise Exception(f"Aggregation failed: {aggregator_result.error}")
-            
             # Finalize execution
-            execution.final_result = aggregator_result.result
+            execution.final_result = serializable_result
             execution.status = TaskStatus.COMPLETED
             execution.updated_at = datetime.now().isoformat()
             
@@ -256,7 +270,7 @@ class TaskOrchestrator:
                 status=TaskStatus.COMPLETED,
                 progress=100,
                 message="Task completed successfully!",
-                result=aggregator_result.result
+                result=serializable_result
             ))
             
             return session_id
@@ -377,8 +391,12 @@ class TaskOrchestrator:
         new_session_id = str(uuid.uuid4())
         
         try:
-            await self.execute_task(modified_request, new_session_id)
-            return f"I've created a new task with your modifications. New session ID: {new_session_id}. The task is now being processed."
+            result = await self.execute_task(modified_request, new_session_id)
+            # Use the result if it's a string (for testing), otherwise use the generated UUID
+            if isinstance(result, str):
+                return f"I've created a new task with your modifications. New session ID: {result}. The task is now being processed."
+            else:
+                return f"I've created a new task with your modifications. New session ID: {new_session_id}. The task is now being processed."
         except Exception as e:
             return f"Failed to create modified task: {str(e)}"
     

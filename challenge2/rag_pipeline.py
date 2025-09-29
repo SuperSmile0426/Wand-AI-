@@ -17,12 +17,12 @@ from langchain.schema import Document
 from langchain.chains import LLMChain
 from langchain.callbacks import StreamingStdOutCallbackHandler
 
-from models import (
+from challenge2.models import (
     SearchResponse, SearchRequest, DocumentInfo, MissingInfo, 
     EnrichmentSuggestion, EnrichmentType, ConfidenceLevel
 )
-from knowledge_base import KnowledgeBase
-from config import Config
+from challenge2.knowledge_base import KnowledgeBase
+from challenge2.config import Config
 
 class RAGPipeline:
     """RAG pipeline for document search and AI answer generation."""

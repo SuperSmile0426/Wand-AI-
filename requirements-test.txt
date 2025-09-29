@@ -1,0 +1,27 @@
+# Testing requirements for both challenges
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+pytest-mock>=3.11.0
+httpx>=0.24.0
+fastapi[all]>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.5.0
+python-multipart>=0.0.6
+websockets>=12.0
+python-dotenv>=1.0.0
+aiofiles>=23.2.1
+jinja2>=3.1.2
+plotly>=5.17.0
+openai>=1.3.0
+langchain>=0.1.0
+langchain-community>=0.0.20
+langchain-openai>=0.0.5
+chromadb>=0.4.0
+sentence-transformers>=2.2.0
+pypdf2>=3.0.0
+python-docx>=1.0.0
+numpy>=1.21.0
+requests>=2.25.0
+beautifulsoup4>=4.10.0
+aiohttp>=3.8.0

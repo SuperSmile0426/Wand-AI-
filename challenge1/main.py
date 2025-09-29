@@ -6,9 +6,9 @@ import json
 import asyncio
 import uuid
 from typing import List, Dict, Any
-from models import TaskRequest, TaskExecution, ProgressUpdate, ConversationMessage
-from orchestrator import TaskOrchestrator
-from config import PORT, HOST
+from challenge1.models import TaskRequest, TaskExecution, ProgressUpdate, ConversationMessage
+from challenge1.orchestrator import TaskOrchestrator
+from challenge1.config import PORT, HOST
 
 app = FastAPI(title="Multi-Agent Task Solver", version="1.0.0")
 
@@ -22,7 +22,7 @@ app.add_middleware(
 )
 
 # Mount static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory="challenge1/static"), name="static")
 
 # Initialize orchestrator
 orchestrator = TaskOrchestrator()
@@ -43,11 +43,17 @@ class ConnectionManager:
         await websocket.send_text(message)
     
     async def broadcast(self, message: str):
+        broken_connections = []
         for connection in self.active_connections:
             try:
                 await connection.send_text(message)
             except:
-                # Remove broken connections
+                # Mark broken connections for removal
+                broken_connections.append(connection)
+        
+        # Remove broken connections
+        for connection in broken_connections:
+            if connection in self.active_connections:
                 self.active_connections.remove(connection)
 
 manager = ConnectionManager()

@@ -2,7 +2,7 @@ import json
 import asyncio
 from typing import Dict, Any
 from .base_agent import BaseAgent
-from models import AgentType
+from challenge1.models import AgentType
 
 class FinancialAgent(BaseAgent):
     def __init__(self):
@@ -64,6 +64,38 @@ Always respond with structured data that can be used by other agents or displaye
                 })
                 tool_calls.append(analysis_result)
         
+        # Always trigger tools in mock mode for testing
+        if self.mock_mode and not tool_calls:
+            # Trigger web search for market/trend keywords (higher priority)
+            if any(keyword in task_description.lower() for keyword in ["market", "trend", "industry"]):
+                search_result = await self.execute_tool("web_search", {
+                    "query": f"financial analysis {task_description}",
+                    "max_results": 3
+                })
+                tool_calls.append(search_result)
+            # Trigger data analysis for data keywords (only if no market keywords)
+            elif any(keyword in task_description.lower() for keyword in ["data", "analyze", "analysis"]):
+                # Use context data if available, otherwise use default
+                data_to_analyze = [100, 200, 300]  # Default data
+                if context:
+                    for agent_type, result in context.items():
+                        if hasattr(result, 'result') and result.result and isinstance(result.result, dict):
+                            if 'data_analysis' in result.result and 'summary_stats' in result.result['data_analysis']:
+                                # Extract values from summary_stats
+                                stats = result.result['data_analysis']['summary_stats']
+                                data_to_analyze = list(stats.values())
+                                break
+                            elif 'financial_data' in result.result and 'revenue' in result.result['financial_data']:
+                                # Extract revenue data
+                                data_to_analyze = result.result['financial_data']['revenue']
+                                break
+                
+                analysis_result = await self.execute_tool("data_analysis", {
+                    "data": data_to_analyze,
+                    "analysis_type": "statistical"
+                })
+                tool_calls.append(analysis_result)
+        
         # Convert context to serializable format
         context_str = "No additional context"
         if context:
@@ -81,12 +113,20 @@ Always respond with structured data that can be used by other agents or displaye
             except Exception as e:
                 context_str = f"Context available but not serializable: {str(e)}"
 
+        # Convert tool calls to serializable format
+        tool_results_str = "No tools used"
+        if tool_calls:
+            try:
+                tool_results_str = json.dumps([tc.model_dump() for tc in tool_calls], indent=2)
+            except Exception as e:
+                tool_results_str = f"Tool results available but not serializable: {str(e)}"
+
         prompt = f"""
 Task: {task_description}
 
 Context: {context_str}
 
-Tool Results: {json.dumps([tc.model_dump() for tc in tool_calls], indent=2) if tool_calls else "No tools used"}
+Tool Results: {tool_results_str}
 
 Please provide a comprehensive financial analysis. Use the tool results and context to inform your analysis.
 
@@ -120,14 +160,20 @@ Please provide a comprehensive financial analysis. Use the tool results and cont
                 "debt_ratio": [0.35, 0.32, 0.30, 0.28]
             }
             
+            # Calculate metrics dynamically from sample_data
+            total_revenue = sum(sample_data["revenue"])
+            total_profit = sum(sample_data["profit"])
+            average_growth_rate = sum(sample_data["growth_rate"]) / len(sample_data["growth_rate"])
+            average_profit_margin = sum(sample_data["profit_margin"]) / len(sample_data["profit_margin"])
+            
             return {
                 "analysis": analysis,
                 "financial_data": sample_data,
                 "key_metrics": {
-                    "average_growth_rate": 7.75,
-                    "average_profit_margin": 13.05,
-                    "total_revenue": 5600000,
-                    "total_profit": 735000,
+                    "average_growth_rate": average_growth_rate,
+                    "average_profit_margin": average_profit_margin,
+                    "total_revenue": total_revenue,
+                    "total_profit": total_profit,
                     "revenue_growth_yoy": 21.6,
                     "profit_growth_yoy": 40.0,
                     "operating_efficiency": 0.87
